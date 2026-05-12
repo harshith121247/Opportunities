@@ -1,90 +1,109 @@
-const asyncHandler = require('express-async-handler')
-
+// controllers/opportunityController.js
+const mongoose = require('mongoose')
 const Opportunity = require('../models/opportunityModel')
 
+// Get opportunities
+const getOpportunities = async (req, res) => {
 
-// @desc    Get opportunities
-// @route   GET /api/opportunities
-// @access  Public
-const getOpportunities = asyncHandler(async (req, res) => {
-
-    const opportunities = await Opportunity.find()
-
+    const search = req.query.search || ''
+ 
+    const opportunities = await Opportunity.find({
+       postedBy: req.user.id,
+       title: { $regex: search, $options: 'i' }
+    }).populate('postedBy', 'name role email')
+ 
     res.status(200).json(opportunities)
-})
+ }
 
+// Create opportunity
+const createOpportunity = async (req, res) => {
 
-// @desc    Create opportunity
-// @route   POST /api/opportunities
-// @access  Private
-const createOpportunity = asyncHandler(async (req, res) => {
+   const { title, description } = req.body
 
-    const { title, description } = req.body
+   if (!title || !description) {
+      return res.status(400).json({
+         message: 'Please add all fields'
+      })
+   }
 
-    if (!title || !description) {
+   const opportunity = await Opportunity.create({
+      title,
+      description,
+      postedBy: req.user.id
+   })
 
-        res.status(400)
+   res.status(201).json(opportunity)
+}
 
-        throw new Error('Please add all required fields')
+// Update opportunity
+const updateOpportunity = async (req, res) => {
+
+    // Validate Mongo ID
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+       return res.status(400).json({
+          message: 'Invalid opportunity ID'
+       })
     }
-
-    const opportunity = await Opportunity.create({
-        title,
-        description
-    })
-
-    res.status(201).json(opportunity)
-})
-
-
-// @desc    Update opportunity
-// @route   PUT /api/opportunities/:id
-// @access  Private
-const updateOpportunity = asyncHandler(async (req, res) => {
-
+ 
     const opportunity = await Opportunity.findById(req.params.id)
-
+ 
     if (!opportunity) {
-
-        res.status(404)
-
-        throw new Error('Opportunity not found')
+       return res.status(404).json({
+          message: 'Opportunity not found'
+       })
     }
-
+ 
+    // Check ownership
+    if (opportunity.postedBy.toString() !== req.user.id) {
+       return res.status(401).json({
+          message: 'Not authorized'
+       })
+    }
+ 
     const updatedOpportunity = await Opportunity.findByIdAndUpdate(
-        req.params.id,
-        req.body,
-        {
-            new: true
-        }
+       req.params.id,
+       req.body,
+       { new: true }
     )
-
+ 
     res.status(200).json(updatedOpportunity)
-})
+ }
 
+// Delete opportunity
+const deleteOpportunity = async (req, res) => {
 
-// @desc    Delete opportunity
-// @route   DELETE /api/opportunities/:id
-// @access  Private
-const deleteOpportunity = asyncHandler(async (req, res) => {
-
-    const opportunity = await Opportunity.findById(req.params.id)
-
-    if(!opportunity) {
-        res.status(404)
-        throw new Error('Opportunity not found')
-
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+        return res.status(400).json({
+           message: 'Invalid opportunity ID'
+        })
     }
-    await opportunity.deleteOne()
 
-    res.status(200).json({
-        message: `Delete Opportunity ${req.params.id}`
-    })
-})
+
+   const opportunity = await Opportunity.findById(req.params.id)
+
+   if (!opportunity) {
+      return res.status(404).json({
+         message: 'Opportunity not found'
+      })
+   }
+
+   // Check ownership
+   if (opportunity.postedBy.toString() !== req.user.id) {
+      return res.status(401).json({
+         message: 'Not authorized'
+      })
+   }
+
+   await opportunity.deleteOne()
+
+   res.status(200).json({
+      message: 'Opportunity deleted'
+   })
+}
 
 module.exports = {
-    getOpportunities,
-    createOpportunity,
-    updateOpportunity,
-    deleteOpportunity
+   getOpportunities,
+   createOpportunity,
+   updateOpportunity,
+   deleteOpportunity
 }

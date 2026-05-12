@@ -1,20 +1,24 @@
+// routes/opportunityRoutes.js
+
 const express = require('express')
 
 const router = express.Router()
 
 const {
-    getOpportunities,
-    createOpportunity,
-    updateOpportunity,
-    deleteOpportunity
+   getOpportunities,
+   createOpportunity,
+   updateOpportunity,
+   deleteOpportunity
 } = require('../controllers/opportunityController')
 
-router.get('/', getOpportunities)
+const { protect } = require('../middleware/authMiddleware')
 
-router.post('/', createOpportunity)
+router.get('/', protect, getOpportunities)
 
-router.put('/:id', updateOpportunity)
+router.post('/', protect, createOpportunity)
 
-router.delete('/:id', deleteOpportunity)
+router.put('/:id', protect, updateOpportunity)
+
+router.delete('/:id', protect, deleteOpportunity)
 
 module.exports = router

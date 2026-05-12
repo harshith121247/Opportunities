@@ -2,16 +2,19 @@ const express = require('express')
 
 const router = express.Router()
 
-router.get('/register', (req, res) => {
-    res.status(200).json({
-        message: 'Register User'
-    })
-})
+const {
+   registerStudent,
+   registerFaculty,
+   loginStudent,
+   loginFaculty
+} = require('../controllers/authController')
 
-router.get('/login', (req, res) => {
-    res.status(200).json({
-        message: 'Login User'
-    })
-})
+router.post('/student/register', registerStudent)
+
+router.post('/faculty/register', registerFaculty)
+
+router.post('/student/login', loginStudent)
+
+router.post('/faculty/login', loginFaculty)
 
 module.exports = router

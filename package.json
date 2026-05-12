@@ -5,16 +5,20 @@
   "main": "server.js",
   "scripts": {
     "start": "node backend/server.js",
-    "server": "nodemon backend/server.js"
+    "server": "nodemon backend/server.js",
+    "client": "npm start --prefix frontend"
   },
   "author": "harshith varma",
   "license": "MIT",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "colors": "^1.4.0",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-async-handler": "^1.2.0",
-    "mongoose": "^9.6.1"
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.1",
+    "react-router-dom": "^7.15.0"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"
