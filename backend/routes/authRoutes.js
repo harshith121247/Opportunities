@@ -6,15 +6,60 @@ const {
    registerStudent,
    registerFaculty,
    loginStudent,
-   loginFaculty
+   loginFaculty,
 } = require('../controllers/authController')
 
-router.post('/student/register', registerStudent)
+const {
+   validateRegister,
+   validateLogin,
+} = require('../middleware/validationMiddleware')
 
-router.post('/faculty/register', registerFaculty)
+// =======================
+// STUDENT ROUTES
+// =======================
 
-router.post('/student/login', loginStudent)
+router.post(
 
-router.post('/faculty/login', loginFaculty)
+   '/student/register',
+
+   validateRegister,
+
+   registerStudent
+
+)
+
+router.post(
+
+   '/student/login',
+
+   validateLogin,
+
+   loginStudent
+
+)
+
+// =======================
+// FACULTY ROUTES
+// =======================
+
+router.post(
+
+   '/faculty/register',
+
+   validateRegister,
+
+   registerFaculty
+
+)
+
+router.post(
+
+   '/faculty/login',
+
+   validateLogin,
+
+   loginFaculty
+
+)
 
 module.exports = router

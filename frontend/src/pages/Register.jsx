@@ -1,16 +1,56 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { FaUser } from 'react-icons/fa'
+
+import { useDispatch, useSelector } from 'react-redux'
+import { useNavigate } from 'react-router-dom'
+
+import { toast } from 'react-toastify'
+
+import { register, reset } from '../features/auth/authSlice'
 
 function Register() {
 
    const [formData, setFormData] = useState({
-      name: '',
-      email: '',
-      password: '',
-      password2: '',
-   })
+    name: '',
+    email: '',
+    password: '',
+    password2: '',
+    role: 'student',
+ })
 
-   const { name, email, password, password2 } = formData
+ const {
+    name,
+    email,
+    password,
+    password2,
+    role,
+ } = formData
+
+   const navigate = useNavigate()
+
+   const dispatch = useDispatch()
+
+   const {
+      user,
+      isLoading,
+      isError,
+      isSuccess,
+      message,
+   } = useSelector((state) => state.auth)
+
+   useEffect(() => {
+
+      if (isError) {
+         toast.error(message)
+      }
+
+      if (isSuccess) {
+         navigate('/dashboard')
+      }
+
+      dispatch(reset())
+
+   }, [user, isError, isSuccess, message, navigate, dispatch])
 
    const onChange = (e) => {
       setFormData((prevState) => ({
@@ -20,13 +60,28 @@ function Register() {
    }
 
    const onSubmit = (e) => {
+
       e.preventDefault()
 
       if (password !== password2) {
-         alert('Passwords do not match')
+
+         toast.error('Passwords do not match')
+
       } else {
-         console.log(formData)
+
+         const userData = {
+            name,
+            email,
+            password,
+            role,
+         }
+
+         dispatch(register(userData))
       }
+   }
+
+   if (isLoading) {
+      return <h1>Loading...</h1>
    }
 
    return (
@@ -73,6 +128,26 @@ function Register() {
                   />
 
                </div>
+
+               <div className='form-group'>
+
+   <select
+      name='role'
+      value={role}
+      onChange={onChange}
+   >
+
+      <option value='student'>
+         Student
+      </option>
+
+      <option value='faculty'>
+         Faculty
+      </option>
+
+   </select>
+
+</div>
 
                <div className='form-group'>
 

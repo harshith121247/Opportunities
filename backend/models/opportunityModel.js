@@ -12,6 +12,8 @@ const opportunitySchema = mongoose.Schema(
          required: [true, 'Please add a description']
       },
 
+      
+
       category: {
         type: String,
         enum: [
@@ -36,7 +38,21 @@ const opportunitySchema = mongoose.Schema(
          type: mongoose.Schema.Types.ObjectId,
          ref: 'User',
          required: true
-      }
+      },
+      applicants: [
+         {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+         },
+      ],
+
+      savedBy: [
+         {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'User',
+         },
+      ],
+      
    },
    {
       timestamps: true

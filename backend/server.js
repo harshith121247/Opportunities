@@ -1,3 +1,11 @@
+const rateLimit =
+   require('express-rate-limit')
+const helmet = require('helmet')
+
+const mongoSanitize =
+   require('express-mongo-sanitize')
+
+const xss = require('xss-clean')
 const {
     notFound,
     errorHandler
@@ -9,9 +17,35 @@ const connectDB = require('./config/db')
 
 const app = express()
 
+// Rate limiter
+
+const limiter = rateLimit({
+
+    windowMs: 15 * 60 * 1000,
+ 
+    max: 100,
+ 
+    message: {
+ 
+       message:
+          'Too many requests. Please try again later.',
+ 
+    },
+ 
+ })
+// Security middleware
+
+app.use(helmet())
+
+app.use(mongoSanitize())
+
+app.use(xss())
+
 connectDB()
 
 app.use(express.json())
+
+app.use(limiter)
 
 const PORT = process.env.PORT || 5000
 

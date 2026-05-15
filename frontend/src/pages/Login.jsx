@@ -1,16 +1,57 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+
 import { FaSignInAlt } from 'react-icons/fa'
+
+import { useNavigate } from 'react-router-dom'
+
+import { useDispatch, useSelector } from 'react-redux'
+
+import { toast } from 'react-toastify'
+
+import { login, reset } from '../features/auth/authSlice'
 
 function Login() {
 
    const [formData, setFormData] = useState({
       email: '',
       password: '',
+      role: 'student',
    })
 
-   const { email, password } = formData
+   const {
+      email,
+      password,
+      role,
+   } = formData
+
+   const navigate = useNavigate()
+
+   const dispatch = useDispatch()
+
+   const {
+      user,
+      isLoading,
+      isError,
+      isSuccess,
+      message,
+   } = useSelector((state) => state.auth)
+
+   useEffect(() => {
+
+      if (isError) {
+         toast.error(message)
+      }
+
+      if (isSuccess) {
+         navigate('/dashboard')
+      }
+
+      dispatch(reset())
+
+   }, [user, isError, isSuccess, message, navigate, dispatch])
 
    const onChange = (e) => {
+
       setFormData((prevState) => ({
          ...prevState,
          [e.target.name]: e.target.value,
@@ -18,9 +59,20 @@ function Login() {
    }
 
    const onSubmit = (e) => {
+
       e.preventDefault()
 
-      console.log(formData)
+      const userData = {
+         email,
+         password,
+         role,
+      }
+
+      dispatch(login(userData))
+   }
+
+   if (isLoading) {
+      return <h1>Loading...</h1>
    }
 
    return (
@@ -32,13 +84,34 @@ function Login() {
                <FaSignInAlt /> Login
             </h1>
 
-            <p>Login and start creating Oppurtunities</p>
+            <p>Please login to your account</p>
 
          </section>
 
          <section className='form'>
 
             <form onSubmit={onSubmit}>
+
+               <div className='form-group'>
+
+                  <select
+                     name='role'
+                     value={role}
+                     onChange={onChange}
+                     required
+                  >
+
+                     <option value='student'>
+                        Student
+                     </option>
+
+                     <option value='faculty'>
+                        Faculty
+                     </option>
+
+                  </select>
+
+               </div>
 
                <div className='form-group'>
 
@@ -50,6 +123,7 @@ function Login() {
                      value={email}
                      placeholder='Enter your email'
                      onChange={onChange}
+                     required
                   />
 
                </div>
@@ -64,13 +138,17 @@ function Login() {
                      value={password}
                      placeholder='Enter password'
                      onChange={onChange}
+                     required
                   />
 
                </div>
 
                <div className='form-group'>
 
-                  <button type='submit' className='btn btn-block'>
+                  <button
+                     type='submit'
+                     className='btn btn-block'
+                  >
                      Submit
                   </button>
 

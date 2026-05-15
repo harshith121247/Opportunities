@@ -1,24 +1,72 @@
-// routes/opportunityRoutes.js
-
 const express = require('express')
 
 const router = express.Router()
 
 const {
    getOpportunities,
+   getMyOpportunities,
    createOpportunity,
    updateOpportunity,
-   deleteOpportunity
+   deleteOpportunity,
+   applyOpportunity,
+   saveOpportunity,
 } = require('../controllers/opportunityController')
 
-const { protect } = require('../middleware/authMiddleware')
+const { protect } =
+   require('../middleware/authMiddleware')
 
-router.get('/', protect, getOpportunities)
+   const {
+      validateOpportunity,
+   } = require('../middleware/validationMiddleware')
 
-router.post('/', protect, createOpportunity)
+// Explore feed
+router.get(
+   '/',
+   protect,
+   getOpportunities
+)
 
-router.put('/:id', protect, updateOpportunity)
+// Logged-in user's opportunities
+router.get(
+   '/my',
+   protect,
+   getMyOpportunities
+)
 
-router.delete('/:id', protect, deleteOpportunity)
+// Create opportunity
+router.post(
+   '/',
+   protect,
+   validateOpportunity,
+   createOpportunity
+)
+
+// Update opportunity
+router.put(
+   '/:id',
+   protect,
+   updateOpportunity
+)
+
+// Delete opportunity
+router.delete(
+   '/:id',
+   protect,
+   deleteOpportunity
+)
+
+// Apply for opportunity
+router.put(
+   '/:id/apply',
+   protect,
+   applyOpportunity
+)
+
+// Save / Unsave opportunity
+router.put(
+   '/save/:id',
+   protect,
+   saveOpportunity
+)
 
 module.exports = router
