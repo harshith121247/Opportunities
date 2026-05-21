@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react'
-import { FaUser } from 'react-icons/fa'
+import { FaUser, FaEnvelope, FaLock, FaUserGraduate } from 'react-icons/fa'
 
+import { Link, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { useNavigate } from 'react-router-dom'
-
 import { toast } from 'react-toastify'
 
 import { register, reset } from '../features/auth/authSlice'
@@ -11,185 +10,198 @@ import { register, reset } from '../features/auth/authSlice'
 function Register() {
 
    const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    password2: '',
-    role: 'student',
- })
+      name: '',
+      email: '',
+      password: '',
+      password2: '',
+      role: 'student',
+   })
 
- const {
-    name,
-    email,
-    password,
-    password2,
-    role,
- } = formData
+   const { name, email, password, password2, role } = formData
+
+   const [touched, setTouched] = useState({})
 
    const navigate = useNavigate()
-
    const dispatch = useDispatch()
 
-   const {
-      user,
-      isLoading,
-      isError,
-      isSuccess,
-      message,
-   } = useSelector((state) => state.auth)
+   const { user, isError, isSuccess, message } = useSelector(
+      (state) => state.auth
+   )
 
    useEffect(() => {
 
-      if (isError) {
-         toast.error(message)
-      }
-
-      if (isSuccess) {
-         navigate('/dashboard')
-      }
-
+      if (isError) toast.error(message)
+      if (isSuccess) navigate('/dashboard')
       dispatch(reset())
 
    }, [user, isError, isSuccess, message, navigate, dispatch])
 
    const onChange = (e) => {
-      setFormData((prevState) => ({
-         ...prevState,
-         [e.target.name]: e.target.value,
-      }))
+      setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
    }
+
+   const onBlur = (e) => {
+      setTouched((prev) => ({ ...prev, [e.target.name]: true }))
+   }
+
+   const getEmailError = () => {
+      if (!email) return 'Email is required'
+      if (role === 'student' && !email.endsWith('@cb.students.amrita.edu'))
+         return 'Use your student email (@cb.students.amrita.edu)'
+      if (role === 'faculty' && !email.endsWith('@cb.amrita.edu'))
+         return 'Use your faculty email (@cb.amrita.edu)'
+      return ''
+   }
+
+   const errors = {
+      name: !name ? 'Full name is required' : '',
+      email: getEmailError(),
+      password: !password ? 'Password is required' : password.length < 6 ? 'Minimum 6 characters' : '',
+      password2: !password2 ? 'Please confirm your password' : password !== password2 ? 'Passwords do not match' : '',
+   }
+
+   const isFormValid = Object.values(errors).every((e) => e === '')
 
    const onSubmit = (e) => {
 
       e.preventDefault()
 
-      if (password !== password2) {
+      setTouched({ name: true, email: true, password: true, password2: true })
 
-         toast.error('Passwords do not match')
+      if (!isFormValid) return
 
-      } else {
-
-         const userData = {
-            name,
-            email,
-            password,
-            role,
-         }
-
-         dispatch(register(userData))
-      }
-   }
-
-   if (isLoading) {
-      return <h1>Loading...</h1>
+      dispatch(register({ name, email, password, role }))
    }
 
    return (
-      <>
 
-         <section className='heading'>
+      <div className='auth-page'>
 
-            <h1>
-               <FaUser /> Register
-            </h1>
+         <div className='auth-card'>
 
-            <p>Please create an account</p>
-
-         </section>
-
-         <section className='form'>
-
-            <form onSubmit={onSubmit}>
-
-               <div className='form-group'>
-
-                  <input
-                     type='text'
-                     className='form-control'
-                     id='name'
-                     name='name'
-                     value={name}
-                     placeholder='Enter your name'
-                     onChange={onChange}
-                  />
-
+            <div className='auth-card-top'>
+               <div className='auth-card-icon'>
+                  <FaUser />
                </div>
+               <h1>Create Account</h1>
+               <p>Join the Amrita Opportunities platform</p>
+            </div>
 
-               <div className='form-group'>
+            <div className='auth-card-body'>
 
-                  <input
-                     type='email'
-                     className='form-control'
-                     id='email'
-                     name='email'
-                     value={email}
-                     placeholder='Enter your email'
-                     onChange={onChange}
-                  />
+               <form onSubmit={onSubmit} className='auth-form'>
 
-               </div>
+                  <div className='auth-input-group'>
+                     <FaUser className='auth-input-icon' />
+                     <input
+                        type='text'
+                        name='name'
+                        value={name}
+                        placeholder='Full name'
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        className={touched.name && errors.name ? 'input-error' : ''}
+                     />
+                  </div>
+                  {touched.name && errors.name && (
+                     <p className='field-error'>✗ {errors.name}</p>
+                  )}
 
-               <div className='form-group'>
+                  <div className='auth-input-group'>
+                     <FaUserGraduate className='auth-input-icon' />
+                     <select
+                        name='role'
+                        value={role}
+                        onChange={onChange}
+                        className='auth-select'
+                     >
+                        <option value='student'>Student</option>
+                        <option value='faculty'>Faculty</option>
+                     </select>
+                  </div>
 
-   <select
-      name='role'
-      value={role}
-      onChange={onChange}
-   >
+                  <div className='auth-input-group'>
+                     <FaEnvelope className='auth-input-icon' />
+                     <input
+                        type='text'
+                        name='email'
+                        value={email}
+                        placeholder={
+                           role === 'student'
+                              ? 'yourname@cb.students.amrita.edu'
+                              : 'yourname@cb.amrita.edu'
+                        }
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        className={touched.email && errors.email ? 'input-error' : email && !errors.email ? 'input-success' : ''}
+                     />
+                  </div>
+                  {email ? (
+                     errors.email
+                        ? <p className='field-error'>✗ {errors.email}</p>
+                        : <p className='field-success'>✓ Valid {role} email</p>
+                  ) : (
+                     <p className='field-hint'>
+                        {role === 'student'
+                           ? 'Must end with @cb.students.amrita.edu'
+                           : 'Must end with @cb.amrita.edu'}
+                     </p>
+                  )}
 
-      <option value='student'>
-         Student
-      </option>
+                  <div className='auth-input-group'>
+                     <FaLock className='auth-input-icon' />
+                     <input
+                        type='password'
+                        name='password'
+                        value={password}
+                        placeholder='Password'
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        className={touched.password && errors.password ? 'input-error' : ''}
+                     />
+                  </div>
+                  {touched.password && errors.password && (
+                     <p className='field-error'>✗ {errors.password}</p>
+                  )}
 
-      <option value='faculty'>
-         Faculty
-      </option>
+                  <div className='auth-input-group'>
+                     <FaLock className='auth-input-icon' />
+                     <input
+                        type='password'
+                        name='password2'
+                        value={password2}
+                        placeholder='Confirm password'
+                        onChange={onChange}
+                        onBlur={onBlur}
+                        className={touched.password2 && errors.password2 ? 'input-error' : ''}
+                     />
+                  </div>
+                  {touched.password2 && (
+                     <p className={errors.password2 ? 'field-error' : 'password-match'}>
+                        {errors.password2 ? `✗ ${errors.password2}` : '✓ Passwords match'}
+                     </p>
+                  )}
 
-   </select>
-
-</div>
-
-               <div className='form-group'>
-
-                  <input
-                     type='password'
-                     className='form-control'
-                     id='password'
-                     name='password'
-                     value={password}
-                     placeholder='Enter password'
-                     onChange={onChange}
-                  />
-
-               </div>
-
-               <div className='form-group'>
-
-                  <input
-                     type='password'
-                     className='form-control'
-                     id='password2'
-                     name='password2'
-                     value={password2}
-                     placeholder='Confirm password'
-                     onChange={onChange}
-                  />
-
-               </div>
-
-               <div className='form-group'>
-
-                  <button type='submit' className='btn btn-block'>
-                     Submit
+                  <button
+                     type='submit'
+                     className='auth-btn'
+                     disabled={!isFormValid && Object.keys(touched).length > 0}
+                  >
+                     Create Account
                   </button>
 
-               </div>
+               </form>
 
-            </form>
+               <p className='auth-footer'>
+                  Already have an account?{' '}
+                  <Link to='/login'>Sign in here</Link>
+               </p>
 
-         </section>
+            </div>
 
-      </>
+         </div>
+
+      </div>
    )
 }
 

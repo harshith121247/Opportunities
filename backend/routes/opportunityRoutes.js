@@ -10,6 +10,8 @@ const {
    deleteOpportunity,
    applyOpportunity,
    saveOpportunity,
+   approveApplicant,
+   rejectApplicant,
 } = require('../controllers/opportunityController')
 
 const { protect } =
@@ -67,6 +69,20 @@ router.put(
    '/save/:id',
    protect,
    saveOpportunity
+)
+
+// Approve applicant & send email
+router.post(
+   '/:id/approve/:applicantId',
+   protect,
+   approveApplicant
+)
+
+// Reject applicant (removes from list + clears cooldown)
+router.post(
+   '/:id/reject/:applicantId',
+   protect,
+   rejectApplicant
 )
 
 module.exports = router

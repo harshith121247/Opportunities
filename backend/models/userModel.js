@@ -28,7 +28,49 @@ const userSchema = mongoose.Schema({
         type: String,
         enum: ['student', 'faculty'],
         default: 'student'
-      }
+    },
+
+    // Student profile fields
+    branch: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+
+    year: {
+        type: String,
+        enum: ['', '1st Year', '2nd Year', '3rd Year', '4th Year'],
+        default: ''
+    },
+
+    skills: {
+        type: [String],
+        default: []
+    },
+
+    bio: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+
+    // Faculty profile fields
+    department: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+
+    subjects: {
+        type: [String],
+        default: []
+    },
+
+    // Cooldown: last time student applied to research/internship
+    researchInternshipAppliedAt: {
+        type: Date,
+        default: null
+    }
     },
     {
         timestamps: true

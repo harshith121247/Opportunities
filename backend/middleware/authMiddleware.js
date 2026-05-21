@@ -23,6 +23,10 @@ const protect = async (req, res, next) => {
          // Get user from token
          req.user = await User.findById(decoded.id).select('-password')
 
+         if (!req.user) {
+            return res.status(401).json({ message: 'User no longer exists' })
+         }
+
          next()
 
       } catch (error) {

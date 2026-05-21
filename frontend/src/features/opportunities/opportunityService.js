@@ -57,6 +57,28 @@ const createOpportunity = async (
    return response.data
 }
 
+// Update opportunity
+const updateOpportunity = async (
+   opportunityId,
+   opportunityData,
+   token
+) => {
+
+   const config = {
+      headers: {
+         Authorization: `Bearer ${token}`,
+      },
+   }
+
+   const response = await axios.put(
+      API_URL + opportunityId,
+      opportunityData,
+      config
+   )
+
+   return response.data
+}
+
 // Delete opportunity
 const deleteOpportunity = async (
    opportunityId,
@@ -119,6 +141,28 @@ const saveOpportunity = async (
    return response.data
 }
 
+// Approve applicant
+const approveApplicant = async (opportunityId, applicantId, token) => {
+   const config = { headers: { Authorization: `Bearer ${token}` } }
+   const response = await axios.post(
+      `${API_URL}${opportunityId}/approve/${applicantId}`,
+      {},
+      config
+   )
+   return response.data
+}
+
+// Reject applicant
+const rejectApplicant = async (opportunityId, applicantId, token) => {
+   const config = { headers: { Authorization: `Bearer ${token}` } }
+   const response = await axios.post(
+      `${API_URL}${opportunityId}/reject/${applicantId}`,
+      {},
+      config
+   )
+   return response.data
+}
+
 const opportunityService = {
 
    getOpportunities,
@@ -127,11 +171,17 @@ const opportunityService = {
 
    createOpportunity,
 
+   updateOpportunity,
+
    deleteOpportunity,
 
    applyOpportunity,
 
    saveOpportunity,
+
+   approveApplicant,
+
+   rejectApplicant,
 
 }
 

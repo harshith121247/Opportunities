@@ -3,7 +3,8 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import opportunityService from './opportunityService'
 
 const initialState = {
-   opportunities: [],
+   opportunities: [],       // my opportunities
+   allOpportunities: [],    // everyone's opportunities
    isError: false,
    isSuccess: false,
    isLoading: false,
@@ -117,6 +118,43 @@ export const createOpportunity =
       }
    )
 
+// Update opportunity
+export const updateOpportunity =
+   createAsyncThunk(
+
+      'opportunities/update',
+
+      async ({ id, opportunityData }, thunkAPI) => {
+
+         try {
+
+            const token =
+               thunkAPI.getState().auth.user.token
+
+            return await
+               opportunityService.updateOpportunity(
+                  id,
+                  opportunityData,
+                  token
+               )
+
+         } catch (error) {
+
+            const message =
+               (error.response &&
+                  error.response.data &&
+                  error.response.data.message) ||
+
+               error.message ||
+
+               error.toString()
+
+            return thunkAPI.rejectWithValue(message)
+         }
+
+      }
+   )
+
 // Delete opportunity
 export const deleteOpportunity =
    createAsyncThunk(
@@ -193,6 +231,38 @@ export const applyOpportunity =
       }
    )
 
+// Approve applicant
+export const approveApplicant = createAsyncThunk(
+   'opportunities/approve',
+   async ({ opportunityId, applicantId }, thunkAPI) => {
+      try {
+         const token = thunkAPI.getState().auth.user.token
+         return await opportunityService.approveApplicant(opportunityId, applicantId, token)
+      } catch (error) {
+         const message =
+            (error.response && error.response.data && error.response.data.message) ||
+            error.message || error.toString()
+         return thunkAPI.rejectWithValue(message)
+      }
+   }
+)
+
+// Reject applicant
+export const rejectApplicant = createAsyncThunk(
+   'opportunities/reject',
+   async ({ opportunityId, applicantId }, thunkAPI) => {
+      try {
+         const token = thunkAPI.getState().auth.user.token
+         return await opportunityService.rejectApplicant(opportunityId, applicantId, token)
+      } catch (error) {
+         const message =
+            (error.response && error.response.data && error.response.data.message) ||
+            error.message || error.toString()
+         return thunkAPI.rejectWithValue(message)
+      }
+   }
+)
+
 // Save / Unsave opportunity
 export const saveOpportunity =
    createAsyncThunk(
@@ -259,57 +329,73 @@ export const opportunitySlice = createSlice({
          .addCase(
             getOpportunities.pending,
             (state) => {
-
                state.isLoading = true
-
             }
          )
 
          .addCase(
             getOpportunities.fulfilled,
             (state, action) => {
-
                state.isLoading = false
                state.isSuccess = true
-               state.opportunities =
-                  action.payload
-
+               state.allOpportunities = action.payload
             }
          )
 
          .addCase(
             getOpportunities.rejected,
             (state, action) => {
-
                state.isLoading = false
                state.isError = true
                state.message = action.payload
-
             }
          )
 
-         // GET MY OPPORTUNITIES
+         // FIX #2 — GET MY OPPORTUNITIES (added missing pending + rejected)
+         .addCase(
+            getMyOpportunities.pending,
+            (state) => {
+               state.isLoading = true
+            }
+         )
+
          .addCase(
             getMyOpportunities.fulfilled,
             (state, action) => {
-
                state.isLoading = false
                state.isSuccess = true
-               state.opportunities =
-                  action.payload
-
+               state.opportunities = action.payload
             }
          )
 
-         // CREATE
+         .addCase(
+            getMyOpportunities.rejected,
+            (state, action) => {
+               state.isLoading = false
+               state.isError = true
+               state.message = action.payload
+            }
+         )
+
+         // CREATE — unshift so the newest appears at the top
          .addCase(
             createOpportunity.fulfilled,
             (state, action) => {
+               state.opportunities.unshift(action.payload)
+            }
+         )
 
-               state.opportunities.push(
-                  action.payload
-               )
-
+         // UPDATE
+         .addCase(
+            updateOpportunity.fulfilled,
+            (state, action) => {
+               state.opportunities =
+                  state.opportunities.map(
+                     (opportunity) =>
+                        opportunity._id === action.payload._id
+                           ? action.payload
+                           : opportunity
+                  )
             }
          )
 
@@ -317,15 +403,12 @@ export const opportunitySlice = createSlice({
          .addCase(
             deleteOpportunity.fulfilled,
             (state, action) => {
-
                state.opportunities =
                   state.opportunities.filter(
                      (opportunity) =>
-
                         opportunity._id !==
                         action.payload.id
                   )
-
             }
          )
 
@@ -333,47 +416,57 @@ export const opportunitySlice = createSlice({
          .addCase(
             applyOpportunity.fulfilled,
             (state, action) => {
-
                state.opportunities =
                   state.opportunities.map(
                      (opportunity) =>
-
-                        opportunity._id ===
-                        action.payload._id
-
+                        opportunity._id === action.payload._id
                            ? action.payload
-
                            : opportunity
                   )
-
+               state.allOpportunities =
+                  state.allOpportunities.map(
+                     (opportunity) =>
+                        opportunity._id === action.payload._id
+                           ? action.payload
+                           : opportunity
+                  )
             }
          )
+
+         // APPROVE APPLICANT — update both lists
+         .addCase(approveApplicant.fulfilled, (state, action) => {
+            state.opportunities = state.opportunities.map((o) =>
+               o._id === action.payload._id ? action.payload : o
+            )
+            state.allOpportunities = state.allOpportunities.map((o) =>
+               o._id === action.payload._id ? action.payload : o
+            )
+         })
+
+         // REJECT APPLICANT — update the opportunity in both lists
+         .addCase(rejectApplicant.fulfilled, (state, action) => {
+            state.opportunities = state.opportunities.map((o) =>
+               o._id === action.payload._id ? action.payload : o
+            )
+            state.allOpportunities = state.allOpportunities.map((o) =>
+               o._id === action.payload._id ? action.payload : o
+            )
+         })
 
          // SAVE
-         .addCase(
-            saveOpportunity.fulfilled,
-            (state, action) => {
-
-               state.opportunities =
-                  state.opportunities.map(
-                     (opportunity) =>
-
-                        opportunity._id ===
-                        action.payload._id
-
-                           ? action.payload
-
-                           : opportunity
-                  )
-
-            }
-         )
+         .addCase(saveOpportunity.fulfilled, (state, action) => {
+            state.opportunities = state.opportunities.map((o) =>
+               o._id === action.payload._id ? action.payload : o
+            )
+            state.allOpportunities = state.allOpportunities.map((o) =>
+               o._id === action.payload._id ? action.payload : o
+            )
+         })
 
    },
 
 })
 
-export const { reset } =
-   opportunitySlice.actions
+export const { reset } = opportunitySlice.actions
 
 export default opportunitySlice.reducer

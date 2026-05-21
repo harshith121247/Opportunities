@@ -98,15 +98,17 @@ const initialState = {
            })
      
            .addCase(register.rejected, (state, action) => {
-              state.isLoading = false
-              state.isError = true
-              state.message = action.payload
-              state.user = null
-           })
+            state.isLoading = false
+            state.isError = true
+            state.isSuccess = false
+            state.message = action.payload
+            state.user = null
+         })
      
-           .addCase(logout.fulfilled, (state) => {
-              state.user = null
-           })
+         .addCase(logout.fulfilled, (state) => {
+            state.user = null
+            state.isSuccess = false
+         })
 
            .addCase(login.pending, (state) => {
             state.isLoading = true
@@ -121,6 +123,7 @@ const initialState = {
          .addCase(login.rejected, (state, action) => {
             state.isLoading = false
             state.isError = true
+            state.isSuccess = false
             state.message = action.payload
             state.user = null
          })

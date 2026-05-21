@@ -41,8 +41,10 @@ const opportunitySchema = mongoose.Schema(
       },
       applicants: [
          {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
+            _id:       false,
+            user:      { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+            status:    { type: String, enum: ['pending', 'accepted', 'rejected'], default: 'pending' },
+            appliedAt: { type: Date, default: Date.now },
          },
       ],
 

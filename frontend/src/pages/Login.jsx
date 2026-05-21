@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react'
 
-import { FaSignInAlt } from 'react-icons/fa'
+import { FaSignInAlt, FaEnvelope, FaLock } from 'react-icons/fa'
 
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 
 import { useDispatch, useSelector } from 'react-redux'
 
@@ -15,150 +15,104 @@ function Login() {
    const [formData, setFormData] = useState({
       email: '',
       password: '',
-      role: 'student',
    })
 
-   const {
-      email,
-      password,
-      role,
-   } = formData
+   const { email, password } = formData
 
    const navigate = useNavigate()
-
    const dispatch = useDispatch()
 
-   const {
-      user,
-      isLoading,
-      isError,
-      isSuccess,
-      message,
-   } = useSelector((state) => state.auth)
+   const { user, isError, isSuccess, message } = useSelector(
+      (state) => state.auth
+   )
 
    useEffect(() => {
 
-      if (isError) {
-         toast.error(message)
-      }
-
-      if (isSuccess) {
-         navigate('/dashboard')
-      }
-
+      if (isError) toast.error(message)
+      if (isSuccess) navigate('/dashboard')
       dispatch(reset())
 
    }, [user, isError, isSuccess, message, navigate, dispatch])
 
    const onChange = (e) => {
-
-      setFormData((prevState) => ({
-         ...prevState,
-         [e.target.name]: e.target.value,
-      }))
+      setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }))
    }
 
    const onSubmit = (e) => {
 
       e.preventDefault()
 
-      const userData = {
-         email,
-         password,
-         role,
+      let role = ''
+
+      if (email.endsWith('@cb.students.amrita.edu')) {
+         role = 'student'
+      } else if (email.endsWith('@cb.amrita.edu')) {
+         role = 'faculty'
+      } else {
+         return toast.error('Use your college email to login')
       }
 
-      dispatch(login(userData))
-   }
-
-   if (isLoading) {
-      return <h1>Loading...</h1>
+      dispatch(login({ email, password, role }))
    }
 
    return (
-      <>
 
-         <section className='heading'>
+      <div className='auth-page'>
 
-            <h1>
-               <FaSignInAlt /> Login
-            </h1>
+         <div className='auth-card'>
 
-            <p>Please login to your account</p>
-
-         </section>
-
-         <section className='form'>
-
-            <form onSubmit={onSubmit}>
-
-               <div className='form-group'>
-
-                  <select
-                     name='role'
-                     value={role}
-                     onChange={onChange}
-                     required
-                  >
-
-                     <option value='student'>
-                        Student
-                     </option>
-
-                     <option value='faculty'>
-                        Faculty
-                     </option>
-
-                  </select>
-
+            <div className='auth-card-top'>
+               <div className='auth-card-icon'>
+                  <FaSignInAlt />
                </div>
+               <h1>Welcome Back</h1>
+               <p>Sign in to your Amrita account</p>
+            </div>
 
-               <div className='form-group'>
+            <div className='auth-card-body'>
 
-                  <input
-                     type='email'
-                     className='form-control'
-                     id='email'
-                     name='email'
-                     value={email}
-                     placeholder='Enter your email'
-                     onChange={onChange}
-                     required
-                  />
+               <form onSubmit={onSubmit} className='auth-form'>
 
-               </div>
+                  <div className='auth-input-group'>
+                     <FaEnvelope className='auth-input-icon' />
+                     <input
+                        type='text'
+                        name='email'
+                        value={email}
+                        placeholder='College email address'
+                        onChange={onChange}
+                        required
+                     />
+                  </div>
 
-               <div className='form-group'>
+                  <div className='auth-input-group'>
+                     <FaLock className='auth-input-icon' />
+                     <input
+                        type='password'
+                        name='password'
+                        value={password}
+                        placeholder='Password'
+                        onChange={onChange}
+                        required
+                     />
+                  </div>
 
-                  <input
-                     type='password'
-                     className='form-control'
-                     id='password'
-                     name='password'
-                     value={password}
-                     placeholder='Enter password'
-                     onChange={onChange}
-                     required
-                  />
-
-               </div>
-
-               <div className='form-group'>
-
-                  <button
-                     type='submit'
-                     className='btn btn-block'
-                  >
-                     Submit
+                  <button type='submit' className='auth-btn'>
+                     Sign In
                   </button>
 
-               </div>
+               </form>
 
-            </form>
+               <p className='auth-footer'>
+                  Don't have an account?{' '}
+                  <Link to='/register'>Register here</Link>
+               </p>
 
-         </section>
+            </div>
 
-      </>
+         </div>
+
+      </div>
    )
 }
 
