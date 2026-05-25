@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = '/api/opportunities/'
+const API_URL = 'http://32.192.188.250:5000/api/opportunities/'
 
 // Get all opportunities
 const getOpportunities = async (token) => {

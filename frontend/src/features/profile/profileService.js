@@ -1,6 +1,6 @@
 import axios from 'axios'
 
-const API_URL = '/api/users/profile'
+const API_URL = 'http://32.192.188.250:5000/api/users/profile'
 
 const getProfile = async (token) => {
    const res = await axios.get(API_URL, {

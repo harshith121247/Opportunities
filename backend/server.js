@@ -1,4 +1,5 @@
 const express = require('express')
+const cors = require('cors')
 require('dotenv').config({ path: require('path').join(__dirname, '.env') })
 require('colors')
 
@@ -19,6 +20,14 @@ connectDB()
 
 // FIX (from previous session) — parse body FIRST before sanitization middleware
 app.use(express.json())
+
+app.use(
+   cors({
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'DELETE'],
+      credentials: false,
+   })
+)
 
 // Security middleware
 app.use(helmet())
